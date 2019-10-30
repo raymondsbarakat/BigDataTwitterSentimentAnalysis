@@ -1,0 +1,48 @@
+﻿Proposal
+
+Domain Description and motivation
+
+Data domain: 
+Tweet streams, csv files , xlsx , Canadian Economics, Canada Immigration, Election, 
+Crime.
+
+Goal:
+correlate economic markets with sentiment on twitter to see if there is a correlation with voting outcomes. 
+
+
+Motivation for rigorous data analytic:
+create a prediction model on sentiment change regarding different markets
+
+
+Questions to answer:
+
+    • What percentage of users are politically active?
+    • What are the most frequent keywords related to each political campaign / political leader? Does that agree with other static data out there?
+    • Does housing market shift create sentiment on Twitter? How much of this sentiment is political? Towards which party are negative/positive sentiments being directed to? 
+    • Does Tax return rate create sentiment on Twitter? How much of this sentiment is political? Towards which party are negative/positive sentiments being directed to?
+    • Does Insurance rate…
+    • Do all these shifts/changes combined create a sentiment on twitter?
+    • Does sentiment correlate to votes? 
+
+Why is the analysis important?
+What factors effect political sentiment. e.g To what extent does housing rate effect political sentiment?
+For every factor we should be able to have 
+ 
+What are a few potential applications?
+political marketing. Create a platform to allow politicians to understand what drives sentiment.
+
+The architecture of the Proposed Solution
+
+Data analytic architecture
+Spark for tweets, 
+Hadoop MapReduce
+HDFS
+Python matplotlib, tweepy,
+RDMS
+
+System evaluation and Data Analysis 
+
+
+
+
+
