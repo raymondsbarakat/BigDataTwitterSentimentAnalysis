@@ -1,0 +1,28 @@
+Prject 1.0
+Batch Goal: 
+1. Interactive map of canada per province. 
+		> every province recieves a color based on highest number of positive tweets according to a party. 
+		> get most frequently used words in these positive tweets. 
+
+Implementaion:	
+1. Gather million of politically related tweets. 
+
+
+2. Clean 
+
+3. classify as liberal positive/negative. conservative postive/negative. NDP positive/negative. 
+		> get count.
+		> order.
+		> assign color.
+		> make a map. 
+		
+		
+Ray:
+BC, Alberta, Manitoba, New Brunswik 
+
+Sami:
+Newfound land and labrador, Nova Soctia, Ontario. 
+
+Matt:
+Quebec, PEI, Saskatchewan. 
+
