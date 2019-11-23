@@ -20,7 +20,7 @@
         <script>
            var ctx = document.getElementById("chart");
            var myChart = new Chart(ctx, {
-                type: 'line',
+                type: 'horizontalBar',
                 data: {
                     labels: [{% for item in labels %}
                               "{{item}}",
@@ -69,19 +69,6 @@
                     }
                 }
            });
-          //  var src_Labels = [];
-          //  var src_Data = [];
-          //   setInterval(function(){
-          //       $.getJSON('/refreshData', {
-          //       }, function(data) {
-          //           src_Labels = data.sLabel;
-          //           src_Data = data.sData;
-          //       });
-          //       myChart.data.labels = src_Labels;
-          //       myChart.data.datasets[0].data = src_Data;
-          //       myChart.update();
-          //   },1000);
-
           setInterval(function(){
                 $.getJSON('/refreshData', {
                 }, function(data) {

@@ -11,16 +11,13 @@ sia = SIA()
 
 # list of hashtags
 searched_hashtags = [
-         # CANADA
-         '#canada', '#canadian', '#canadians', '#poutine', '#canadaimmigration', '#canadiangovernment', '#liberals', '#clp', '#toronto', '#eh',
-         # USA
-         '#USA', '#america', '#american', '#americans', '#americanimmigration', '#americangovernment', '#trump', '#conservatives', '#NYC', '#newyork',
-         # GREECE
-         '#greece', '#greek', '#greeks', '#athens', '#sirtaki', '#greekgovernment', '#greecelife', '#moussaka', '#santorini', '#pavlopoulos',
-         # FRANCE
-         '#france', '#french', '#francais', '#crepe', '#crepes', '#wine', '#eiffeltower', '#paris', '#toureiffel', '#macron',
-         # INDIA
-         '#india', '#indian', '#hindi', '#namaste', '#mumbai', '#bollywood', '#chai', '#butterchicken', '#samosa', '#newdelhi']
+    # LIBERALS
+    '#liberal', '#liberals', '#lpc', '#trudeau', '#justintrudeau',
+    # CONSERVATIVES
+    '#conservatives', '#conservative', '#cpc', '#scheer', '#andrewscheer',
+    # NDP
+    '#NDP', '#newdemocraticparty', '#jagmeetsingh', '#jagmeet'
+]
 
 # create spark configuration
 conf = SparkConf()
@@ -53,16 +50,12 @@ def getTopic(goodTweet):
         if hashtag in goodTweet:
             tagIndex = searched_hashtags.index(hashtag)
 
-            if tagIndex < 10:
-                return "Canada"
-            elif tagIndex < 20:
-                return "USA"
-            elif tagIndex < 30:
-                return "Greece"
-            elif tagIndex < 40:
-                return "France"
-            else:
-                return "India"
+            if tagIndex < 5:
+                return "Liberals"
+            elif tagIndex < 10:
+                return "Conservatives"
+            else :
+                return "NDP"
 
 
 def sentimentAnalysis(goodTweet):
@@ -111,6 +104,7 @@ def process_rdd(time, rdd):
         if rdd.isEmpty():
             return
 
+        print("processing")
         # Get spark sql singleton context from the current context
         sql_context = get_sql_context_instance(rdd.context)
 
@@ -135,13 +129,34 @@ def process_rdd(time, rdd):
 
 
 def send_df_to_dashboard(df):
+    print("sending to dashboard")
     # extract the hashtags from dataframe and convert them into array
     top_tags = [str(t.topic) for t in df.select("topic").collect()]
     # extract the counts from dataframe and convert them into array
     tags_count = [p.sentiment for p in df.select("sentiment").collect()]
+
+    liberalData = "0.0"
+    conservativeData = "0.0"
+    ndpData = "0.0"
+
+    if len(tags_count) > 0:
+        liberalData = tags_count[0]
+        if len(tags_count) > 1:
+            conservativeData = tags_count[1]
+            if len(tags_count) > 2:
+                ndpData = tags_count[2]
+
+    print("sentiments:")
+    print(liberalData)
+    print(conservativeData)
+    print(ndpData)
+
+
     # initialize and send the data through REST API
     url = 'http://192.168.0.11:5001/updateData'
-    request_data = {'label': str(top_tags), 'data': str(tags_count)}
+    # request_data = {'label': str(top_tags), 'data': str(tags_count)}
+    request_data = {'liberal': str(liberalData), 'conservative': str(conservativeData), 'ndp': str(ndpData)}
+
     response = requests.post(url, data=request_data)
 
 

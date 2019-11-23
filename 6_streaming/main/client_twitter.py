@@ -75,16 +75,13 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 stream = Stream(auth, listener)
 
 # setup search terms
-track = [ # CANADA
-         '#canada', '#canadian', '#canadians', '#poutine', '#canadaimmigration', '#canadiangovernment', '#liberals', '#clp', '#toronto', '#eh',
-         # USA
-         '#USA', '#america', '#american', '#americans', '#americanimmigration', '#americangovernment', '#trump', '#conservatives', '#NYC', '#newyork',
-         # GREECE
-         '#greece', '#greek', '#greeks', '#athens', '#sirtaki', '#greekgovernment', '#greecelife', '#moussaka', '#santorini', '#pavlopoulos',
-         # FRANCE
-         '#france', '#french', '#francais', '#crepe', '#crepes', '#wine', '#eiffeltower', '#paris', '#toureiffel', '#macron',
-         # INDIA
-         '#india', '#indian', '#hindi', '#namaste', '#mumbai', '#bollywood', '#chai', '#butterchicken', '#samosa', '#newdelhi']
+track = [
+        # LIBERALS
+         '#liberal', '#liberals', '#lpc', '#trudeau', '#justintrudeau',
+        # CONSERVATIVES
+         '#conservatives', '#conservative', '#cpc', '#scheer', '#andrewscheer',
+        # NDP
+         '#NDP', '#newdemocraticparty', '#jagmeetsingh', '#jagmeet']
 language = ['en']
 
 # get filtered tweets, forward them to spark until interrupted
