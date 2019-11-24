@@ -2,86 +2,127 @@
 <html>
     <head>
         <meta charset="utf-8"/>
-        <title>Top Trending Twitter Hashtags</title>
+        <title>Canada Real-time Political Sentiment </title>
         <script src="/static/Chart.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-
 
     </head>
 
     <body>
         <center>
-            <h2>Country Sentiment Analysis on Twitter</h2>
-            <div style="width:700px;height=500px">
+            <h2>Real-time Political Sentiment Analysis on Twitter</h2>
+            <div style="width:1000px;height=800px">
                 <canvas id="chart"></canvas>
             </div>
         </center>
 
         <script>
-           var ctx = document.getElementById("chart");
-           var myChart = new Chart(ctx, {
-                type: 'horizontalBar',
-                data: {
-                    labels: [{% for item in labels %}
+        var intervals = []
+        var conservative_data = [];
+        var liberal_data      = [];
+        var NDP_data          = [];
+        var ctx = document.getElementById('chart');
+        var config =  {
+            type: 'line',
+            data: {
+                labels: [{% for interval in intervals %}
+                          "{{interval}}",
+                         {% endfor %}],
+                datasets: [{
+                    data: [{% for item in liberal_data %}
                               "{{item}}",
                              {% endfor %}],
-                    datasets: [{
-                        label: 'Sentiment Rate',
-                        data: [{% for item in values %}
-                                  {{item}},
-                                {% endfor %}],
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.2)',
-                            'rgba(54, 162, 235, 0.2)',
-                            'rgba(255, 206, 86, 0.2)',
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(153, 102, 255, 0.2)',
-                            'rgba(255, 159, 64, 0.2)',
-                            'rgba(255, 99, 132, 0.2)',
-                            'rgba(54, 162, 235, 0.2)',
-                            'rgba(255, 206, 86, 0.2)',
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(153, 102, 255, 0.2)'
-                        ],
-                        borderColor: [
-                            'rgba(255,99,132,1)',
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)',
-                            'rgba(255, 159, 64, 1)',
-                            'rgba(255,99,132,1)',
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)'
-                        ],
-                        borderWidth: 1
+                    label: "Liberals",
+                    borderColor: "rgba(255,99,132,1)",
+                    fill: false
+                  }, {
+                    data: [{% for item in conservative_data %}
+                              "{{item}}",
+                             {% endfor %}],
+                    label: "Conservatives",
+                    borderColor: "rgba(54, 162, 235, 1)",
+                    fill: false
+                  }, {
+                    data: [{% for item in NDP_data %}
+                              "{{item}}",
+                             {% endfor %}],
+                    label: "NDP",
+                    borderColor: "rgba(255,165,0, 1)",
+                    fill: false
+                  }
+                ]
+              },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: false
+                        }
                     }]
-                },
-                options: {
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero:true
-                            }
-                        }]
-                    }
                 }
-           });
-          setInterval(function(){
-                $.getJSON('/refreshData', {
-                }, function(data) {
-                    src_Labels = data.sLabel;
-                    src_Data = data.sData;
-                });
+            }
+        }
+        var myChart = new Chart(ctx, config);
 
-                myChart.data.labels = src_Labels;
-                myChart.data.datasets[0].data = src_Data;
-                myChart.update();
-            },5000);
+        setInterval(function(){
+          // console.log("data pre GET: ");
+          // console.log(conservative_data);
+          // console.log(liberal_data);
+          // console.log(NDP_data);
+
+
+              $.getJSON('/refreshData', {
+              }, function(data) {
+                  // console.log(data);
+                  // console.log(liberal_data)
+                  conservative_data = data.conservativeData;
+                  liberal_data = data.liberalData;
+                  NDP_data = data.ndpData;
+
+                  console.log("data inside GET: ");
+                  console.log(conservative_data);
+                  console.log(liberal_data);
+                  console.log(NDP_data);
+
+              }).done(function() {
+                if(!(liberal_data.length == 0 && conservative_data.length == 0 &&
+                   NDP_data.length == 0)) {
+                     var today = new Date();
+                     var time = today.getHours() + ":" + today.getMinutes() +
+                                ":" + today.getSeconds();
+                     config.data.datasets[0].data.push(liberal_data);
+                     config.data.datasets[1].data.push(conservative_data);
+                     config.data.datasets[2].data.push(NDP_data);
+                     config.data.labels.push(time);
+                     console.log("current data: ");
+                     console.log(config.data.datasets[0].data);
+                     console.log(config.data.datasets[1].data);
+                     console.log(config.data.datasets[2].data);
+
+                     console.log(config.data.labels);
+                     myChart.update();
+                   }
+              });
+
+              // console.log("data final: ");
+              // console.log(conservative_data);
+              // console.log(liberal_data);
+              // console.log(NDP_data);
+              //
+              // var today = new Date();
+              // var time = today.getHours() + ":" + today.getMinutes() +
+              //            ":" + today.getSeconds();
+              //
+              // if (liberal_data.length == 0 && conservative_data.length == 0 &&
+              //    NDP_data.length == 0){
+              //   config.data.datasets[0].data.push(liberal_data);
+              //   config.data.datasets[1].data.push(conservative_data);
+              //   config.data.datasets[2].data.push(NDP_data);
+              //   config.data.labels.push(time);
+              // }
+
+              // myChart.update();
+          },5000);
         </script>
-
-
     </body>
 </html>

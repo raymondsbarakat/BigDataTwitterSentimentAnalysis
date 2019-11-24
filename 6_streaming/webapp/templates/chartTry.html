@@ -66,12 +66,15 @@
               });
               var today = new Date();
               var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-              config.data.datasets[0].data.push(liberal_data)
-              config.data.datasets[1].data.push(conservative_data)
-              config.data.datasets[2].data.push(NDP_data)
-              config.data.labels.push(time)
+              config.data.datasets[0].data.push(liberal_data);
+              config.data.datasets[1].data.push(conservative_data);
+              config.data.datasets[2].data.push(NDP_data);
+              config.data.labels.push(time);
               // myChart.data.labels = src_Labels;
               // myChart.data.datasets[0].data = src_Data;
+              console.log("current data: ");
+              console.log(config.data.datasets[0].data);
+              console.log(config.data.labels);
               myChart.update();
           },5000);
         </script>

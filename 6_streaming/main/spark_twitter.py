@@ -10,18 +10,20 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
 sia = SIA()
 
 # list of hashtags
-searched_hashtags = [
-    # LIBERALS
-    '#liberal', '#liberals', '#lpc', '#trudeau', '#justintrudeau',
-    # CONSERVATIVES
-    '#conservatives', '#conservative', '#cpc', '#scheer', '#andrewscheer',
-    # NDP
-    '#NDP', '#newdemocraticparty', '#jagmeetsingh', '#jagmeet'
-]
+searched_keywords = [
+        # LIBERALS
+         '#liberal', '#liberals', '#lpc', '#trudeau', '#justintrudeau', 'justintrudeau', 'trudeau', 'liberal',
+         'liberals', 'liberal party of canada', 'justin trudeau'
+        # CONSERVATIVES
+         '#conservatives', '#conservative', '#cpc', '#scheer', '#andrewscheer', 'conservatives', 'conservative', 'cpc',
+        'andrew scheer', 'scheer', 'conservative party of canada',
+        # NDP
+         '#ndp', '#newdemocraticparty', '#jagmeetsingh', '#jagmeet', 'ndp', 'new democratic party', 'jagmeet singh',
+         'jagmeet']
 
 # create spark configuration
 conf = SparkConf()
-conf.setAppName("Countries Twitter Sentiment Analysis")
+conf.setAppName("Political Twitter Sentiment Analysis")
 
 # create spark context with the above configuration
 sc = SparkContext(conf=conf)
@@ -38,21 +40,21 @@ dataStream = ssc.socketTextStream("twitter", 9009)
 
 # decide whether tweet will be chosen or not
 def chooseTweet(tweet):
-    for hashtag in searched_hashtags:
-        if hashtag in tweet:
+    for keyword in searched_keywords:
+        if keyword in tweet:
             return True
 
     return False
 
 
 def getTopic(goodTweet):
-    for hashtag in searched_hashtags:
-        if hashtag in goodTweet:
-            tagIndex = searched_hashtags.index(hashtag)
+    for keyword in searched_keywords:
+        if keyword in goodTweet:
+            tagIndex = searched_keywords.index(keyword)
 
-            if tagIndex < 5:
+            if tagIndex < 11:
                 return "Liberals"
-            elif tagIndex < 10:
+            elif tagIndex < 21:
                 return "Conservatives"
             else :
                 return "NDP"
@@ -70,7 +72,7 @@ def sentimentAnalysis(goodTweet):
         return (0, 1)
 
 
-# get good tweets that have our hashtags
+# get good tweets that have our keywords
 goodTweet = dataStream.filter(lambda tweet: chooseTweet(tweet.lower().split()))
 
 # map as follows: topic --> (s, c)
@@ -118,38 +120,44 @@ def process_rdd(time, rdd):
         sentiment_df.registerTempTable("topics")
 
         # get the country sentiments from the table using SQL and print them
-        sentiment_counts_df = sql_context.sql("select topic, sentiment from topics order by sentiment desc")
+        sentiment_counts_df = sql_context.sql("select topic, sentiment from topics order by topic asc")
         sentiment_counts_df.show()
 
         # call this method to prepare top 10 hashtags DF and send them
-        send_df_to_dashboard(sentiment_counts_df)
+        send_df_to_dashboard(sentiment_counts_df, sql_context)
     except:
         e = sys.exc_info()[0]
     # print("Error: %s" % e)
 
 
-def send_df_to_dashboard(df):
+def send_df_to_dashboard(df, sql_context):
     print("sending to dashboard")
-    # extract the hashtags from dataframe and convert them into array
-    top_tags = [str(t.topic) for t in df.select("topic").collect()]
+
+    conservative_df = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"Conservatives\"")
+    liberal_df      = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"Liberals\"")
+    ndp_df          = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"NDP\"")
+
+    sconservative = [str(s.sentiment) for s in conservative_df.select("sentiment").collect()]
+    sliberal      = [str(s.sentiment) for s in liberal_df.select("sentiment").collect()]
+    sndp          = [str(s.sentiment) for s in ndp_df.select("sentiment").collect()]
+
+    # allParties_df       = sql_context.sql("SELECT topic, sentiment FROM topics ORDER BY topic asc")
+    # allPartiesSentiment = [str(s.sentiment) for s in allParties_df.select("sentiment").collect()]
+
+
+
+
     # extract the counts from dataframe and convert them into array
-    tags_count = [p.sentiment for p in df.select("sentiment").collect()]
+    # tags_count = [p.sentiment for p in df.select("sentiment").collect()]
 
-    liberalData = "0.0"
-    conservativeData = "0.0"
-    ndpData = "0.0"
-
-    if len(tags_count) > 0:
-        liberalData = tags_count[0]
-        if len(tags_count) > 1:
-            conservativeData = tags_count[1]
-            if len(tags_count) > 2:
-                ndpData = tags_count[2]
+    conservativeData = sconservative[0] if len(sconservative) > 0 else "0.0"
+    liberalData      = sliberal[0] if len(sliberal) > 0 else "0.0"
+    ndpData          = sndp[0] if len(sndp) > 0 else "0.0"
 
     print("sentiments:")
-    print(liberalData)
-    print(conservativeData)
-    print(ndpData)
+    print(conservativeData) #conservative
+    print(liberalData) #liberal
+    print(ndpData) #NDP
 
 
     # initialize and send the data through REST API

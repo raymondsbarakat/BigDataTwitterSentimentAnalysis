@@ -77,11 +77,14 @@ stream = Stream(auth, listener)
 # setup search terms
 track = [
         # LIBERALS
-         '#liberal', '#liberals', '#lpc', '#trudeau', '#justintrudeau',
+         '#liberal', '#liberals', '#lpc', '#trudeau', '#justintrudeau', 'justintrudeau', 'trudeau', 'liberal',
+         'liberals', 'Liberal Party of Canada', 'Justin Trudeau'
         # CONSERVATIVES
-         '#conservatives', '#conservative', '#cpc', '#scheer', '#andrewscheer',
+         '#conservatives', '#conservative', '#cpc', '#scheer', '#andrewscheer', 'conservatives', 'conservative', 'cpc',
+        'Andrew Scheer', 'Scheer', 'Conservative Party of Canada',
         # NDP
-         '#NDP', '#newdemocraticparty', '#jagmeetsingh', '#jagmeet']
+         '#NDP', '#newdemocraticparty', '#jagmeetsingh', '#jagmeet', 'NDP', 'new democratic party', 'jagmeet singh',
+         'jagmeet']
 language = ['en']
 
 # get filtered tweets, forward them to spark until interrupted
