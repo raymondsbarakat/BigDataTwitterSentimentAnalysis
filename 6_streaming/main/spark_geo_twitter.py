@@ -1,3 +1,5 @@
+import json
+
 from pyspark import SparkConf, SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import Row, SQLContext
@@ -21,6 +23,23 @@ searched_keywords = [
          '#ndp', '#newdemocraticparty', '#jagmeetsingh', '#jagmeet', 'ndp', 'new democratic party', 'jagmeet singh',
          'jagmeet']
 
+LIBERALS = "Liberals"
+CONSERVATIVES = "Conservatives"
+NDP = "NDP"
+
+pON = "ON"
+pQC = "QC"
+pAB = "AB"
+pMB = "MB"
+pNS = "NS"
+pBC = "BC"
+pNB = "NB"
+pNL = "NL"
+pPE = "PE"
+pSASK = "SASK"
+
+listOfProvinces = [pON,pQC, pAB, pMB, pNS, pBC, pNB, pNL, pPE, pSASK]
+
 # create spark configuration
 conf = SparkConf()
 conf.setAppName("Political Twitter Sentiment Analysis")
@@ -36,7 +55,7 @@ ssc = StreamingContext(sc, 2)
 ssc.checkpoint("checkpoint_TwitterApp")
 
 # read data from port 9009
-dataStream = ssc.socketTextStream("twitter", 9009)
+dataStream = ssc.socketTextStream("twitte2", 9009)
 
 # decide whether tweet will be chosen or not
 def chooseTweet(tweet):
@@ -47,17 +66,25 @@ def chooseTweet(tweet):
     return False
 
 
+def getLocation(tweet):
+    # 1st split:  will be split into two. ["tweet", "location]"]. so take element 1
+    # 2nd split: will be split into two. [location, ""], so take element 0
+    return (((tweet.split("["))[1]).split("]")[0])
+
+
 def getTopic(goodTweet):
+    tweet_location = getLocation(goodTweet)
+    goodTweetTokens = goodTweet.lower().split()
     for keyword in searched_keywords:
-        if keyword in goodTweet:
+        if keyword in goodTweetTokens:
             tagIndex = searched_keywords.index(keyword)
 
             if tagIndex < 11:
-                return "Liberals"
+                return tweet_location + "_" + LIBERALS
             elif tagIndex < 21:
-                return "Conservatives"
+                return tweet_location + "_" + CONSERVATIVES
             else :
-                return "NDP"
+                return tweet_location + "_" + NDP
 
 
 def sentimentAnalysis(goodTweet):
@@ -75,8 +102,10 @@ def sentimentAnalysis(goodTweet):
 # get good tweets that have our keywords
 goodTweet = dataStream.filter(lambda tweet: chooseTweet(tweet.lower().split()))
 
+
+
 # map as follows: topic --> (s, c)
-sentimentCount = goodTweet.map(lambda tweet: (getTopic(tweet.lower().split()), sentimentAnalysis(tweet.lower())))
+sentimentCount = goodTweet.map(lambda tweet: (getTopic(tweet), sentimentAnalysis(tweet.lower())))
 
 
 # adding the (sentiment, count) of each topic to its last (sentiment, count)
@@ -121,7 +150,11 @@ def process_rdd(time, rdd):
 
         # get the country sentiments from the table using SQL and print them
         sentiment_counts_df = sql_context.sql("select topic, sentiment from topics order by topic asc")
+        # ON_df = sql_context.sql("SELECT topic, sentiment from topics WHERE (sentiment = (SELECT MAX(sentiment) from topics)) AND (topic LIKE \'ON_%\')")
+        # ON_df = sql_context.sql("SELECT topic, sentiment from topics WHERE topic = \'" +
+        #                                    pON + "_" + CONSERVATIVES + "\'")
         sentiment_counts_df.show()
+        # ON_df.show()
 
         # call this method to prepare top 10 hashtags DF and send them
         send_df_to_dashboard(sentiment_counts_df, sql_context)
@@ -132,14 +165,39 @@ def process_rdd(time, rdd):
 
 def send_df_to_dashboard(df, sql_context):
     print("sending to dashboard")
+    provinceDict = {}
 
-    conservative_df = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"Conservatives\"")
-    liberal_df      = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"Liberals\"")
-    ndp_df          = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"NDP\"")
+    for province in listOfProvinces:
+        pconservatives_df = sql_context.sql("SELECT topic, sentiment from topics WHERE topic = \'" +
+                                           province + "_" + CONSERVATIVES + "\'")
 
-    sconservative = [str(s.sentiment) for s in conservative_df.select("sentiment").collect()]
-    sliberal      = [str(s.sentiment) for s in liberal_df.select("sentiment").collect()]
-    sndp          = [str(s.sentiment) for s in ndp_df.select("sentiment").collect()]
+        pliberals_df = sql_context.sql("SELECT topic, sentiment from topics WHERE topic = \'" +
+                                           province + "_" + LIBERALS + "\'")
+
+        pNDP_df = sql_context.sql("SELECT topic, sentiment from topics WHERE topic = \'" +
+                                       province + "_" + NDP + "\'")
+
+        sentimentConservatives = [str(s.sentiment) for s in pconservatives_df.select("sentiment").collect()]
+        sentimentLiberals      = [str(s.sentiment) for s in pliberals_df.select("sentiment").collect()]
+        sentimentNDP           = [str(s.sentiment) for s in pNDP_df.select("sentiment").collect()]
+
+        conservativeData = sentimentConservatives[0] if len(sentimentConservatives) > 0 else "0.0"
+        liberalData = sentimentLiberals[0] if len(sentimentLiberals) > 0 else "0.0"
+        ndpData = sentimentNDP[0] if len(sentimentNDP) > 0 else "0.0"
+
+        partyProvinceDict = {CONSERVATIVES: conservativeData, LIBERALS: liberalData, NDP: ndpData}
+
+        provinceDict[province] = partyProvinceDict
+
+
+
+    # conservative_df = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"Conservatives\"")
+    # liberal_df      = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"Liberals\"")
+    # ndp_df          = sql_context.sql("SELECT topic, sentiment FROM topics WHERE topic = \"NDP\"")
+    #
+    # sconservative = [str(s.sentiment) for s in conservative_df.select("sentiment").collect()]
+    # sliberal      = [str(s.sentiment) for s in liberal_df.select("sentiment").collect()]
+    # sndp          = [str(s.sentiment) for s in ndp_df.select("sentiment").collect()]
 
     # allParties_df       = sql_context.sql("SELECT topic, sentiment FROM topics ORDER BY topic asc")
     # allPartiesSentiment = [str(s.sentiment) for s in allParties_df.select("sentiment").collect()]
@@ -149,23 +207,26 @@ def send_df_to_dashboard(df, sql_context):
 
     # extract the counts from dataframe and convert them into array
     # tags_count = [p.sentiment for p in df.select("sentiment").collect()]
-
-    conservativeData = sconservative[0] if len(sconservative) > 0 else "0.0"
-    liberalData      = sliberal[0] if len(sliberal) > 0 else "0.0"
-    ndpData          = sndp[0] if len(sndp) > 0 else "0.0"
+    #
+    # conservativeData = sconservative[0] if len(sconservative) > 0 else "0.0"
+    # liberalData      = sliberal[0] if len(sliberal) > 0 else "0.0"
+    # ndpData          = sndp[0] if len(sndp) > 0 else "0.0"
 
     print("sentiments:")
-    print(conservativeData) #conservative
-    print(liberalData) #liberal
-    print(ndpData) #NDP
+    # print(conservativeData) #conservative
+    # print(liberalData) #liberal
+    # print(ndpData) #NDP
+    print(provinceDict)
 
 
     # initialize and send the data through REST API
-    url = 'http://10.24.235.161:5001/updateData'
+    url = 'http://10.228.82.152:5001/updateData'
     # request_data = {'label': str(top_tags), 'data': str(tags_count)}
-    request_data = {'liberal': str(liberalData), 'conservative': str(conservativeData), 'ndp': str(ndpData)}
+    request_data = json.dumps(provinceDict)
+    headers = {'content-type': 'application/json'}
+    # request_data = {'liberal': str(liberalData), 'conservative': str(conservativeData), 'ndp': str(ndpData)}
 
-    response = requests.post(url, data=request_data)
+    response = requests.post(url, data=request_data, headers=headers)
 
 
 # do this for every single interval

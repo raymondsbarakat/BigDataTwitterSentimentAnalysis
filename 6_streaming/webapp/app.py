@@ -50,4 +50,4 @@ def update_data():
 
 
 if __name__ == "__main__":
-    app.run(host='192.168.0.11', port=5001)
+    app.run(host='10.24.235.161', port=5001)

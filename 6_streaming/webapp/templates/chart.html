@@ -4,6 +4,7 @@
         <meta charset="utf-8"/>
         <title>Canada Real-time Political Sentiment </title>
         <script src="/static/Chart.js"></script>
+        <script type='text/javascript' src='https://www.google.com/jsapi'></script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
     </head>
@@ -14,6 +15,9 @@
             <div style="width:1000px;height=800px">
                 <canvas id="chart"></canvas>
             </div>
+
+            <div id="chart_div" style="width: 900px; height: 500px;"></div>
+
         </center>
 
         <script>
@@ -64,6 +68,44 @@
         }
         var myChart = new Chart(ctx, config);
 
+        google.load('visualization', '1', {'packages': ['geochart']});
+              google.setOnLoadCallback(function() {
+                var data = google.visualization.arrayToDataTable([
+               ['Province',   'Party'],
+               ['Quebec' , 0],
+               ['Ontario',0],
+               ['Alberta',0],
+               ['Manitoba',0],
+               ['Nova Scotia', 0],
+               ['British Columbia',0],
+               ['New Brunswick', 0],
+               ['Newfoundland and Labrador', 0],
+               ['Nova Scotia',0],
+               ['Prince Edward Island',0],
+               ['Saskatchewan',0]
+                 ]);
+               var options = {
+                 region: 'CA',
+              //colorAxis: {colors: ['red', 'blue']},
+                 //displayMode: 'markers',
+                 resolution: 'provinces',
+                 legend: 'none',
+                 enableRegionInteractivity: 'true',
+              colorAxis: {
+                     minValue: 0,
+                     maxValue: 2
+                   },
+               colors: ['#FF0000','#3498DB'],
+                   backgroundColor: 'black',
+                   datalessRegionColor: 'black',
+                   defaultColor: 'red',
+
+                 //sizeAxis: {minSize:5,  maxSize: 5},
+                 //colorAxis: {minValue: 1, maxValue:1,  colors: ['#B92B3D']}
+              };
+              var chart = new google.visualization.GeoChart(document.getElementById('chart_div'));
+              chart.draw(data, options);
+              });
         setInterval(function(){
           // console.log("data pre GET: ");
           // console.log(conservative_data);

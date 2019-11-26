@@ -1,0 +1,119 @@
+<html>
+  <head>
+    <script type='text/javascript' src='https://www.google.com/jsapi'></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+
+  </head>
+  <body>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+
+    <script type='text/javascript'>
+    provinceDict = {
+      "Quebec" : 1,
+      "Ontario" : 0,
+      "Sami" : 5
+    }
+console.log("FIRST!");
+console.log(provinceDict);
+    var x = 0;
+
+    // function loadMap() {
+      google.load('visualization', '1', {'packages': ['geochart']});
+      google.setOnLoadCallback(function() {
+        var data = google.visualization.arrayToDataTable([
+       ['Province',   'Party'],
+       ['Quebec' , 0],
+       ['Ontario',0],
+       ['Alberta',0],
+       ['Manitoba',0],
+       ['Nova Scotia', 0],
+       ['British Columbia',0],
+       ['New Brunswick', 0],
+       ['Newfoundland and Labrador', 0],
+       ['Nova Scotia',0],
+       ['Prince Edward Island',0],
+       ['Saskatchewan',0]
+         ]);
+       var options = {
+         region: 'CA',
+      //colorAxis: {colors: ['red', 'blue']},
+         //displayMode: 'markers',
+         resolution: 'provinces',
+         legend: 'none',
+         enableRegionInteractivity: 'true',
+      colorAxis: {
+             minValue: 0,
+             maxValue: 3
+           },
+       colors: ['#FF0000','#3498DB', '#ffa500', '#d3d3d3'],
+           backgroundColor: 'black',
+           datalessRegionColor: 'black',
+           defaultColor: 'red',
+
+         //sizeAxis: {minSize:5,  maxSize: 5},
+         //colorAxis: {minValue: 1, maxValue:1,  colors: ['#B92B3D']}
+      };
+      var chart = new google.visualization.GeoChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+
+      setInterval(function() {
+        $.getJSON('/refreshData', {
+        }, function(data2) {
+          provinceDict = data2.provinceDict;
+          // console.log(provinceDict);
+        }).done(function() {
+            data.setValue(0, 1, getSentiment(provinceDict['QC']));
+            data.setValue(1, 1, getSentiment(provinceDict['ON']));
+            data.setValue(2, 1, getSentiment(provinceDict['AB']));
+            data.setValue(3, 1, getSentiment(provinceDict['MB']));
+            data.setValue(4, 1, getSentiment(provinceDict['NS']));
+            data.setValue(5, 1, getSentiment(provinceDict['BC']));
+            data.setValue(6, 1, getSentiment(provinceDict['NB']));
+            data.setValue(7, 1, getSentiment(provinceDict['NL']));
+            data.setValue(8, 1, getSentiment(provinceDict['NS']));
+            data.setValue(9, 1, getSentiment(provinceDict['PE']));
+            data.setValue(10, 1, getSentiment(provinceDict['SASK']));
+
+            chart.draw(data, options);
+        });
+        }, 3000);
+      });
+
+      function getSentiment(partySentiments) {
+        conservatives = partySentiments['Conservatives'];
+        liberals = partySentiments['Liberals'];
+        ndp = partySentiments['NDP'];
+
+        if (conservatives === 0) {
+          conservatives = -10;
+        }
+
+        if (liberals === 0) {
+          liberals = -10;
+        }
+
+        if (ndp === 0) {
+          ndp = -10;
+        }
+
+
+        var max = Math.max(conservatives, liberals, ndp);
+
+        console.log(max);
+
+        if (max == conservatives && max > 0) {
+          return 1;
+        } else if (max == liberals && max > 0) {
+          return 0;
+        } else if (max == ndp && max > 0) {
+          return 2;
+        } else {
+          return 3;
+        }
+
+      }
+
+    </script>
+  </body>
+</html>

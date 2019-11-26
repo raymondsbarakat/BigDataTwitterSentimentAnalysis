@@ -86,7 +86,7 @@ provinceDict = {}
 partyIndicator = 1
 for province in provinces:
     provinceDict[province] = partyIndicator
-    partyIndicator = (partyIndicator + 1) % 3
+    partyIndicator = (partyIndicator + 1) % 4
 print(provinceDict)
 
 # initialize and send the data through REST API
