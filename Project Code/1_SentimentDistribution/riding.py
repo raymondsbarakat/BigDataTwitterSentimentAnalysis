@@ -21,8 +21,8 @@ def radiusAprox(x, y):
         cent = centers[x]
         coor = [tuple(l) for l in y]
         #print(str(cent) + " coor: " + str(coor))
-        rad = distance.cdist([cent], coor, 'euclidean')
-        mm = max(rad[0])
+        rad = distance.pdist(y, 'euclidean')
+        mm = sum(rad)/len(coor)
         #print(x, mm)
         # d = euclidean_distances(cent, k)
         dist[x] = mm
@@ -53,6 +53,7 @@ for x, y in geoL.items():
 partyKeywords =['Liberal OR Liberals OR trudeau',
                    'conservative OR conservatives OR Scheer']
                    #'\"NDP OR Jagmeet Singh\"']
+
 
 # for party in partyKeywords:
 #     for x ,y in geoL.items():
