@@ -55,21 +55,21 @@ partyKeywords =['Liberal OR Liberals OR trudeau',
                    #'\"NDP OR Jagmeet Singh\"']
 
 
-# for party in partyKeywords:
-#     for x ,y in geoL.items():
-#         c.Search = party
-#         c.Since = "2015-10-21 00:00:00"
-#         c.Until = "2019-10-21 00:00:00"
-#         if 100*y[1] > 150:
-#             break
-#         c.Geo = str(y[0][0]) + "," + str(y[0][1]) + "," + str(100*y[1]) + "km"
-#         #c.Geo = "43.65881690934842, -79.36997665439088, 2.0501943141372016km"
-#         tweets = []
-#         c.Store_object = True
-#         c.Store_object_tweets_list = tweets
-#
-#         # c.Since = str(datetime.datetime.strptime("2019-07-21 00:00:00", "%Y-%m-%d %H:%M:%S").timestamp()).split('.')[0]
-#         # c.Until = str(datetime.datetime.strptime("2019-07-21 00:00:00", "%Y-%m-%d %H:%M:%S").timestamp()).split('.')[0]
-#         c.Store_csv = True
-#         c.Output = "./RidingData/politicalTweetsRiding" + party + x +".csv"
-#         twint.run.Search(c)
+for party in partyKeywords:
+    for x ,y in geoL.items():
+        c.Search = party
+        c.Since = "2015-10-21 00:00:00"
+        c.Until = "2019-10-21 00:00:00"
+        if 100*y[1] > 150:
+            break
+        c.Geo = str(y[0][0]) + "," + str(y[0][1]) + "," + str(100*y[1]) + "km"
+        #c.Geo = "43.65881690934842, -79.36997665439088, 2.0501943141372016km"
+        tweets = []
+        c.Store_object = True
+        c.Store_object_tweets_list = tweets
+
+        # c.Since = str(datetime.datetime.strptime("2019-07-21 00:00:00", "%Y-%m-%d %H:%M:%S").timestamp()).split('.')[0]
+        # c.Until = str(datetime.datetime.strptime("2019-07-21 00:00:00", "%Y-%m-%d %H:%M:%S").timestamp()).split('.')[0]
+        c.Store_csv = True
+        c.Output = "./RidingData/politicalTweetsRiding" + party + x +".csv"
+        twint.run.Search(c)
